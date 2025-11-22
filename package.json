@@ -3,5 +3,11 @@
     "workspaces": [
         "src/*",
         "shared/*"
-    ]
+    ],
+    "scripts": {
+        "check": "prettier --check ."
+    },
+    "devDependencies": {
+        "prettier": "^3.6.2"
+    }
 }
