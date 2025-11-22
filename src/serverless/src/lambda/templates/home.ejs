@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>raymond wang blog: hello internet</title>
+
+        <!-- google fonts -->
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+        <link
+            href="https://fonts.googleapis.com/css2?family=Google+Sans+Code:wght@400&family=Inter:wght@400;600&display=swap"
+            rel="stylesheet"
+        />
+
+        <!-- google material symbols -->
+        <link
+            rel="stylesheet"
+            href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined&icon_names=arrow_outward,ink_pen,keyboard_arrow_down,keyboard_arrow_up"
+        />
+        <style>
+            .material-symbols-outlined {
+                font-variation-settings:
+                    "FILL" 0,
+                    "wght" 400,
+                    "GRAD" 0,
+                    "opsz" 24;
+            }
+        </style>
+
+        <!-- start highlight.js -->
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/highlight.min.js"></script>
+
+        <!-- load languages here -->
+        <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/languages/scss.min.js"></script> -->
+
+        <script>hljs.highlightAll();</script>
+        <!-- end highlight.js -->
+
+        <link rel="stylesheet" href="/static/css/styles.bundle.css" />
+
+        <script src="/static/js/index.bundle.js"></script>
+    </head>
+
+    <body>
+        <div id="everything" class="content">
+            <header class="section">
+                <img
+                    src="/static/img/blog_logo_dither_48x48.png"
+                    alt="8 Ball Logo"
+                />
+            </header>
+
+            <main>
+                <% if ((typeof blogs !== 'undefined' && blogs.length > 0)) { %>
+                    <% blogs.forEach(function(blog, index) { %>
+                        <div class="post shadowContainer"> 
+                            <div class="header">
+                                <div class="section">
+                                    <div class="textContainer">
+                                        <span class="date loading" data-tooltip-class="monospace" data-timestamp="<%= blog.uploadDate %>">
+                                            <%= new Date(blog.uploadDate).toLocaleString() %>
+                                        </span>
+                                    </div>
+    
+                                    <button name="toggleContent">
+                                        <span class="material-symbols-outlined symbol">
+                                            keyboard_arrow_up
+                                        </span>                                
+                                    </button>
+                                </div>
+
+                                <% if (blog.guestWriter) { %>
+                                    <div class="section">
+                                        <div class="textContainer">
+                                            <span class="material-symbols-outlined symbol">
+                                                ink_pen
+                                            </span>
+                                            <span>
+                                                Guest written by <span class="underline"><%= blog.guestWriter %></span>
+                                            </span>
+                                        </div>
+                                    </div>
+                                <% } %>
+                            </div>
+                            <div class="content">
+                                <%- blog.content %>
+                            </div>
+                        </div>
+                    <% }); %>
+                <% } %>
+            </main>
+
+            <footer>
+                <div class="content shadowContainer">
+                    <div class="stacked">
+                        <span>Powered by <a href="https://github.com/waymondrang.com/blogway">BlogWay</a></span>
+                        <span class="copyright">Copyright &copy; 2025 Raymond Wang</span>
+                    </div>
+    
+                    <div class="buttons">
+                        <img src="/static/img/valid-html20.png" alt="">
+                    </div>
+                </div>
+
+                <div class="thumbnail shadowContainer">
+                    <img src="/static/img/2nd floor basement.png" alt="2nd floor basement?" />
+                </div>
+            </footer>
+        </div>
+    </body>
+</html>
+

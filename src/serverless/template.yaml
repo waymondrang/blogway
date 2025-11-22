@@ -1,0 +1,607 @@
+# good starter resource: https://github.com/aws/aws-sam-cli-app-templates/blob/master/nodejs22.x/full-stack/%7B%7Bcookiecutter.project_name%7D%7D/template.yaml
+
+AWSTemplateFormatVersion: "2010-09-09"
+Transform: AWS::Serverless-2016-10-31
+Description: sam configuration for blog.waymondrang.com
+
+Parameters:
+    CustomDomainAcmCertificateArn:
+        Type: String
+        Description: ARN of the ACM certificate for custom domain (e.g. blog.waymondrang.com)
+
+# More info about Globals: https://github.com/awslabs/serverless-application-model/blob/master/docs/globals.rst
+Globals:
+    Function:
+        Timeout: 3
+
+Resources:
+    HomeFunction:
+        Type: AWS::Lambda::Function
+        Properties:
+            Description: lambda function for home page
+            # error is normal, will be handled by aws cloudformation package
+            Code: src/lambda/
+            Role: !GetAtt HomeFunctionRole.Arn
+            Runtime: nodejs22.x
+            Handler: home.handler
+            PackageType: Zip
+            Environment:
+                Variables:
+                    TABLE_NAME: !Ref BlogTable
+
+    # see more here: https://docs.aws.amazon.com/AWSCloudFormation/latest/TemplateReference/aws-resource-lambda-function.html
+    UploadBlogFunction:
+        Type: AWS::Lambda::Function
+        Properties:
+            Description: lambda function to upload blog posts
+            # error is normal, will be handled by aws cloudformation package
+            Code: src/lambda/
+            Role: !GetAtt UploadBlogFunctionRole.Arn
+            Runtime: nodejs22.x
+            Handler: upload.handler
+            PackageType: Zip
+            Environment:
+                Variables:
+                    TABLE_NAME: !Ref BlogTable
+    # see more here: https://docs.aws.amazon.com/AWSCloudFormation/latest/TemplateReference/aws-resource-lambda-function.html
+
+    SanityFunction:
+        Type: AWS::Lambda::Function
+        Properties:
+            Description: sanity test function
+            Code: src/lambda/
+            Role: !GetAtt SanityFunctionRole.Arn
+            Runtime: nodejs22.x
+            Handler: sanity.handler
+
+    # upload blog lambda role
+    # see more here: https://docs.aws.amazon.com/AWSCloudFormation/latest/TemplateReference/aws-resource-iam-role.html
+    UploadBlogFunctionRole:
+        Type: AWS::IAM::Role
+        Properties:
+            # see more here: https://docs.aws.amazon.com/lambda/latest/dg/lambda-intro-execution-role.html
+            AssumeRolePolicyDocument:
+                Version: "2012-10-17"
+                Statement:
+                    - Effect: Allow
+                      Principal:
+                          Service: lambda.amazonaws.com
+                      Action: sts:AssumeRole
+            Policies:
+                - PolicyName: UploadBlogFunctionWriteAccess
+                  PolicyDocument:
+                      Version: "2012-10-17"
+                      Statement:
+                          # lambda logging permissions
+                          # see more here: https://docs.aws.amazon.com/lambda/latest/dg/monitoring-cloudwatchlogs.html
+                          - Effect: Allow
+                            Action:
+                                - logs:CreateLogGroup
+                                - logs:CreateLogStream
+                                - logs:PutLogEvents
+                            Resource: "*"
+
+                          # dynamo db permissions
+                          # see more here: https://docs.aws.amazon.com/service-authorization/latest/reference/list_amazondynamodb.html
+                          - Effect: Allow
+                            Action:
+                                - dynamodb:PutItem
+                                - dynamodb:UpdateItem
+                            Resource: !GetAtt BlogTable.Arn
+
+                          # s3 write permissions
+                          # see more here: https://docs.aws.amazon.com/service-authorization/latest/reference/list_amazons3.html
+                          - Effect: Allow
+                            Action:
+                                - s3:PutObject
+                            Resource: !Sub ${BlogBucket.Arn}/*
+
+    HomeFunctionRole:
+        Type: AWS::IAM::Role
+        Properties:
+            # see more here: https://docs.aws.amazon.com/lambda/latest/dg/lambda-intro-execution-role.html
+            AssumeRolePolicyDocument:
+                Version: "2012-10-17"
+                Statement:
+                    - Effect: Allow
+                      Principal:
+                          Service: lambda.amazonaws.com
+                      Action: sts:AssumeRole
+            Policies:
+                - PolicyName: HomeFunctionPolicy
+                  PolicyDocument:
+                      Version: "2012-10-17"
+                      Statement:
+                          # lambda logging permissions
+                          # see more here: https://docs.aws.amazon.com/lambda/latest/dg/monitoring-cloudwatchlogs.html
+                          - Effect: Allow
+                            Action:
+                                - logs:CreateLogGroup
+                                - logs:CreateLogStream
+                                - logs:PutLogEvents
+                            Resource: "*"
+
+                          # dynamo db permissions
+                          # see more here: https://docs.aws.amazon.com/service-authorization/latest/reference/list_amazondynamodb.html
+                          - Effect: Allow
+                            Action:
+                                - dynamodb:Scan
+                            Resource: !GetAtt BlogTable.Arn
+
+    # sanity test function role
+    SanityFunctionRole:
+        Type: AWS::IAM::Role
+        Properties:
+            AssumeRolePolicyDocument:
+                Version: "2012-10-17"
+                Statement:
+                    - Effect: Allow
+                      Principal:
+                          Service: lambda.amazonaws.com
+                      Action: sts:AssumeRole
+            Policies:
+                - PolicyName: BasicLogging
+                  PolicyDocument:
+                      Version: "2012-10-17"
+                      Statement:
+                          - Effect: Allow
+                            Action:
+                                - logs:CreateLogGroup
+                                - logs:CreateLogStream
+                                - logs:PutLogEvents
+                            Resource: "*"
+
+    # see more here: https://docs.aws.amazon.com/AWSCloudFormation/latest/TemplateReference/aws-resource-apigatewayv2-api.html
+    # previously used aws::serverless:api
+    # note: use cloudfront for domain management
+    BlogApiGateway:
+        Type: AWS::ApiGatewayV2::Api
+        Properties:
+            Name: BlogApiGateway
+            ProtocolType: HTTP
+            CorsConfiguration:
+                AllowOrigins:
+                    - "*"
+                AllowMethods:
+                    - GET
+                    - POST
+                    - OPTIONS
+                AllowHeaders:
+                    - Authorization
+                    - Content-Type
+
+    # api gateway authorizer
+    # see more here: https://docs.aws.amazon.com/AWSCloudFormation/latest/TemplateReference/aws-resource-apigatewayv2-authorizer.html
+    BlogApiGatewayAuthorizer:
+        Type: AWS::ApiGatewayV2::Authorizer
+        Properties:
+            Name: BlogApiGatewayAuthorizer
+            ApiId: !Ref BlogApiGateway
+            AuthorizerType: JWT
+            IdentitySource:
+                - $request.header.Authorization
+            JwtConfiguration:
+                Audience:
+                    - !Ref BlogUserPoolClient
+                Issuer: !Sub https://cognito-idp.${AWS::Region}.amazonaws.com/${BlogUserPool}
+
+    # upload blog api gateway integration
+    # connects api to lambda (previously done automatically by aws::serverless::api)
+    # see more here: https://docs.aws.amazon.com/AWSCloudFormation/latest/TemplateReference/aws-resource-apigatewayv2-integration.html
+    UploadBlogFunctionApiGatewayIntegration:
+        Type: AWS::ApiGatewayV2::Integration
+        Properties:
+            ApiId: !Ref BlogApiGateway
+            Description: integration for api gateway to upload blog function
+            IntegrationType: AWS_PROXY
+            IntegrationUri: !GetAtt UploadBlogFunction.Arn
+            IntegrationMethod: POST
+            PayloadFormatVersion: "2.0"
+
+    # sanity function api gateway integration
+    SanityFunctionApiGatewayIntegration:
+        Type: AWS::ApiGatewayV2::Integration
+        Properties:
+            ApiId: !Ref BlogApiGateway
+            Description: integration for api gateway to sanity function
+            IntegrationType: AWS_PROXY
+            IntegrationUri: !GetAtt SanityFunction.Arn
+            IntegrationMethod: GET
+            PayloadFormatVersion: "2.0"
+
+    # home function api gateway
+    HomeFunctionApiGatewayIntegration:
+        Type: AWS::ApiGatewayV2::Integration
+        Properties:
+            ApiId: !Ref BlogApiGateway
+            Description: integration for api gateway to home function
+            IntegrationType: AWS_PROXY
+            IntegrationUri: !GetAtt HomeFunction.Arn
+            IntegrationMethod: GET
+            PayloadFormatVersion: "2.0"
+
+    # api gateway route to upload blog function
+    # see more here: https://docs.aws.amazon.com/AWSCloudFormation/latest/TemplateReference/aws-resource-apigatewayv2-route.html
+    UploadBlogApiGatewayRoute:
+        Type: AWS::ApiGatewayV2::Route
+        Properties:
+            ApiId: !Ref BlogApiGateway
+            RouteKey: POST /api/upload
+            Target: !Sub integrations/${UploadBlogFunctionApiGatewayIntegration}
+
+            # secure the route via jwt authorization
+            AuthorizationType: JWT
+            AuthorizerId: !Ref BlogApiGatewayAuthorizer
+
+    # api gateway route to sanity function
+    SanityApiGatewayRoute:
+        Type: AWS::ApiGatewayV2::Route
+        Properties:
+            ApiId: !Ref BlogApiGateway
+            RouteKey: GET /api/sanity
+            Target: !Sub integrations/${SanityFunctionApiGatewayIntegration}
+
+    # api gateway route to home function
+    HomeApiGatewayRoute:
+        Type: AWS::ApiGatewayV2::Route
+        Properties:
+            ApiId: !Ref BlogApiGateway
+            RouteKey: GET /
+            Target: !Sub integrations/${HomeFunctionApiGatewayIntegration}
+
+    # lambda invocation permission for api gateway
+    # see more here: https://docs.aws.amazon.com/AWSCloudFormation/latest/TemplateReference/aws-resource-lambda-permission.html
+    UploadBlogFunctionApiGatewayPermission:
+        Type: AWS::Lambda::Permission
+        Properties:
+            Action: lambda:InvokeFunction
+            FunctionName: !GetAtt UploadBlogFunction.Arn
+            # see more here: https://docs.aws.amazon.com/apigateway/latest/developerguide/arn-format-reference.html#apigateway-execute-api-arns
+            Principal: apigateway.amazonaws.com
+            SourceArn: !Sub arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${BlogApiGateway}/*/*
+
+    SanityFunctionApiGatewayPermission:
+        Type: AWS::Lambda::Permission
+        Properties:
+            Action: lambda:InvokeFunction
+            FunctionName: !GetAtt SanityFunction.Arn
+            Principal: apigateway.amazonaws.com
+            SourceArn: !Sub arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${BlogApiGateway}/*/*
+
+    HomeFunctionApiGatewayPermission:
+        Type: AWS::Lambda::Permission
+        Properties:
+            Action: lambda:InvokeFunction
+            FunctionName: !GetAtt HomeFunction.Arn
+            Principal: apigateway.amazonaws.com
+            SourceArn: !Sub arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${BlogApiGateway}/*/*
+
+    # api gateway deployment stage
+    # see more here: https://docs.aws.amazon.com/AWSCloudFormation/latest/TemplateReference/aws-resource-apigatewayv2-stage.html
+    ApiStage:
+        Type: AWS::ApiGatewayV2::Stage
+        Properties:
+            ApiId: !Ref BlogApiGateway
+            StageName: $default
+            AutoDeploy: true
+
+    # dynamodb table for storing content
+    BlogTable:
+        Type: AWS::DynamoDB::Table
+        Properties:
+            AttributeDefinitions:
+                - AttributeName: id
+                  AttributeType: S
+                - AttributeName: uploadDate
+                  AttributeType: S
+            KeySchema:
+                - AttributeName: id
+                  KeyType: HASH
+                - AttributeName: uploadDate
+                  KeyType: RANGE
+            BillingMode: PROVISIONED
+            ProvisionedThroughput:
+                ReadCapacityUnits: 2
+                WriteCapacityUnits: 2
+
+    # cognito user pool
+    # see more here: https://docs.aws.amazon.com/AWSCloudFormation/latest/TemplateReference/aws-resource-cognito-userpool.html
+    BlogUserPool:
+        Type: AWS::Cognito::UserPool
+        Properties:
+            UserPoolName: BlogUserPool
+            AutoVerifiedAttributes:
+                - email
+            UsernameAttributes:
+                - email
+
+    # cognito user pool client
+    # see more here: https://docs.aws.amazon.com/AWSCloudFormation/latest/TemplateReference/aws-resource-cognito-userpoolclient.html
+    BlogUserPoolClient:
+        Type: AWS::Cognito::UserPoolClient
+        Properties:
+            UserPoolId: !Ref BlogUserPool
+            ClientName: BlogUserPoolClient
+            # see more here about explicit auth flows: https://docs.aws.amazon.com/AWSCloudFormation/latest/TemplateReference/aws-resource-cognito-userpoolclient.html#cfn-cognito-userpoolclient-explicitauthflows
+            GenerateSecret: false
+
+    # s3 bucket to store static assets
+    # see more here: https://docs.aws.amazon.com/AWSCloudFormation/latest/TemplateReference/aws-resource-s3-bucket.html
+    BlogBucket:
+        Type: AWS::S3::Bucket
+        DeletionPolicy: Retain
+        UpdateReplacePolicy: Retain
+
+    # policy to allow cloudfront access to s3
+    # see https://github.com/aws/aws-sam-cli-app-templates/blob/85ef41b4108af0bf7d7416316eb457b55335b5aa/nodejs22.x/full-stack/%7B%7Bcookiecutter.project_name%7D%7D/template.yaml#L160
+    BlogBucketPolicy:
+        Type: AWS::S3::BucketPolicy
+        Properties:
+            Bucket: !Ref BlogBucket
+            PolicyDocument:
+                Version: "2012-10-17"
+                Id: CloudFrontS3AccessPolicy
+                Statement:
+                    - Sid: AllowCloudFrontServicePrincipalReadOnly
+                      Effect: Allow
+                      Principal:
+                          Service: cloudfront.amazonaws.com
+                      Action: s3:GetObject
+                      Resource: !Join
+                          - ""
+                          - - "arn:aws:s3:::"
+                            - !Ref BlogBucket
+                            - /*
+                      Condition:
+                          StringEquals:
+                              AWS:SourceArn: !Join
+                                  - ""
+                                  - - "arn:aws:cloudfront::"
+                                    - !Ref AWS::AccountId
+                                    - ":distribution/"
+                                    - !Ref CloudFrontDistribution
+
+    # see more here: https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/private-content-restricting-access-to-s3.html#create-oac-overview-s3
+    # also see more here: https://docs.aws.amazon.com/AWSCloudFormation/latest/TemplateReference/aws-resource-cloudfront-originaccesscontrol.html
+    OriginAccessControl:
+        Type: AWS::CloudFront::OriginAccessControl
+        Properties:
+            OriginAccessControlConfig:
+                Description: S3 origin access control
+                Name: OriginAccessControl
+                OriginAccessControlOriginType: s3
+                SigningBehavior: always
+                SigningProtocol: sigv4
+
+    # see more here: https://docs.aws.amazon.com/AWSCloudFormation/latest/TemplateReference/aws-properties-cloudfront-cachepolicy-cachepolicyconfig.html
+    CloudFrontAPICachePolicy:
+        Type: AWS::CloudFront::CachePolicy
+        Properties:
+            CachePolicyConfig:
+                # values originally ripped from https://github.com/aws/aws-sam-cli-app-templates/blob/master/nodejs22.x/full-stack/%7B%7Bcookiecutter.project_name%7D%7D/template.yaml
+                # values modified using https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/using-managed-cache-policies.html
+                DefaultTTL: 2
+                MaxTTL: 600
+                MinTTL: 0
+                Name: CloudFrontAPICachePolicy
+                ParametersInCacheKeyAndForwardedToOrigin:
+                    CookiesConfig:
+                        CookieBehavior: none
+                    EnableAcceptEncodingGzip: false
+                    HeadersConfig:
+                        HeaderBehavior: none
+                    QueryStringsConfig:
+                        QueryStringBehavior: none
+
+    CloudFrontS3CachePolicy:
+        Type: AWS::CloudFront::CachePolicy
+        Properties:
+            CachePolicyConfig:
+                # values from https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/using-managed-cache-policies.html
+                DefaultTTL: 86400
+                MaxTTL: 31536000
+                MinTTL: 1
+                Name: CloudFrontS3CachePolicy
+                ParametersInCacheKeyAndForwardedToOrigin:
+                    CookiesConfig:
+                        CookieBehavior: none
+                    EnableAcceptEncodingGzip: true
+                    EnableAcceptEncodingBrotli: true
+                    HeadersConfig:
+                        HeaderBehavior: none
+                    QueryStringsConfig:
+                        QueryStringBehavior: none
+
+    # process html path (add index.html if necessary)
+    # see more here: https://docs.aws.amazon.com/AWSCloudFormation/latest/TemplateReference/aws-resource-cloudfront-function.html
+    AppendIndexHTMLPathFunction:
+        Type: AWS::CloudFront::Function
+        Properties:
+            Name: AppendIndexHTMLPathFunction
+            AutoPublish: true
+            FunctionConfig:
+                Comment: appends index.html prefix to uri (if necessary)
+                Runtime: cloudfront-js-2.0
+            FunctionCode: |
+                function handler(event) {
+                    let request = event.request;
+                    let uri = request.uri;
+
+                    // check if uri ends with slash
+                    if (uri.endsWith('/')) {
+                        // apppend index.html
+                        uri = uri + "index.html";
+                    } else {
+                        // check if uri has file extension in last section
+                        let last_section = uri.split('/').pop();
+                        let has_dot = last_section.includes('.');
+
+                        // if last section does not have dot, append /index.html
+                        if (!has_dot) {
+                            uri = uri + "/index.html";
+                        }
+
+                        // note: do nothing if last section has dot
+                    }
+
+                    // note: don't prepend anything to it
+                    request.uri = uri;
+                    return request;
+                }
+
+    # build path preprocessor function
+    # see more here: https://docs.aws.amazon.com/AWSCloudFormation/latest/TemplateReference/aws-resource-cloudfront-function.html
+    AppendIndexHTMLBuildPathFunction:
+        Type: AWS::CloudFront::Function
+        Properties:
+            Name: AppendIndexHTMLBuildPathFunction
+            AutoPublish: true
+            FunctionConfig:
+                Comment: prepends /build prefix to uri
+                Runtime: cloudfront-js-2.0
+            FunctionCode: |
+                function handler(event) {
+                    let request = event.request;
+                    let uri = request.uri;
+
+                    // check if uri ends with slash
+                    if (uri.endsWith('/')) {
+                        // apppend index.html
+                        uri = uri + "index.html";
+                    } else {
+                        // check if uri has file extension in last section
+                        let last_section = uri.split('/').pop();
+                        let has_dot = last_section.includes('.');
+
+                        // if last section does not have dot, append /index.html
+                        if (!has_dot) {
+                            uri = uri + "/index.html";
+                        }
+
+                        // note: do nothing if last section has dot
+                    }
+
+                    request.uri = "/build" + uri;
+                    return request;
+                }
+
+    # see more here: https://docs.aws.amazon.com/AWSCloudFormation/latest/TemplateReference/aws-resource-cloudfront-distribution.html
+    CloudFrontDistribution:
+        Type: AWS::CloudFront::Distribution
+        Properties:
+            # see more here: https://docs.aws.amazon.com/AWSCloudFormation/latest/TemplateReference/aws-properties-cloudfront-distribution-distributionconfig.html
+            DistributionConfig:
+                Enabled: true
+                DefaultCacheBehavior:
+                    # default to statically built files (/build)
+                    TargetOriginId: S3Origin
+                    ViewerProtocolPolicy: redirect-to-https
+                    # see more about managed cache policies: https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/using-managed-cache-policies.html
+                    # TODO: use production cache policies (temporarily using caching disabled)
+                    CachePolicyId: 4135ea2d-6df8-44a3-9df3-4b5a84be39ad
+                    FunctionAssociations:
+                        # preprocess path uri to add /build prefix
+                        - EventType: viewer-request
+                          FunctionARN: !GetAtt AppendIndexHTMLBuildPathFunction.FunctionARN
+
+                # create origin
+                # see more here: https://docs.aws.amazon.com/AWSCloudFormation/latest/TemplateReference/aws-properties-cloudfront-distribution-origin.html
+                Origins:
+                    # api gateway for s3 static files
+                    - Id: S3Origin
+                      DomainName: !GetAtt BlogBucket.RegionalDomainName
+                      # use oac for secure S3 access
+                      # see more here: https://docs.aws.amazon.com/AWSCloudFormation/latest/TemplateReference/aws-properties-cloudfront-distribution-s3originconfig.html
+                      S3OriginConfig:
+                          OriginAccessIdentity: ""
+                      OriginAccessControlId: !Ref OriginAccessControl
+
+                    # api gateway for lambda functions
+                    # see: https://repost.aws/knowledge-center/api-gateway-cloudfront-distribution
+                    - Id: APIGatewayOrigin
+                      DomainName: !Sub ${BlogApiGateway}.execute-api.${AWS::Region}.${AWS::URLSuffix}
+                      # note: origin path is $default (/)
+                      CustomOriginConfig:
+                          HTTPPort: 443
+                          OriginProtocolPolicy: https-only
+                          OriginSSLProtocols:
+                              - TLSv1.2
+
+                # connect custom domain
+                Aliases:
+                    - blog.waymondrang.com
+                ViewerCertificate:
+                    AcmCertificateArn: !Ref CustomDomainAcmCertificateArn
+                    SslSupportMethod: sni-only
+
+                # define cache behaviors (incl. paths to origins)
+                # see more here: https://docs.aws.amazon.com/AWSCloudFormation/latest/TemplateReference/aws-properties-cloudfront-distribution-cachebehavior.html
+                CacheBehaviors:
+                    - PathPattern: /static/*
+                      TargetOriginId: S3Origin
+                      ViewerProtocolPolicy: redirect-to-https
+                      # TODO: use production cache policies (temporarily using caching disabled)
+                      CachePolicyId: 4135ea2d-6df8-44a3-9df3-4b5a84be39ad
+
+                    # dynamically generated home page
+                    - PathPattern: /
+                      TargetOriginId: APIGatewayOrigin
+                      ViewerProtocolPolicy: redirect-to-https
+                      # TODO: use production cache policies (temporarily using caching disabled)
+                      CachePolicyId: 4135ea2d-6df8-44a3-9df3-4b5a84be39ad
+                      # see more about managed origin request policies: https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/using-managed-origin-request-policies.html
+                      # TODO: migrate from development cors-customorigin policy
+                      OriginRequestPolicyId: 59781a5b-3903-41f3-afcb-af62929ccde1
+
+                    # - PathPattern: /admin
+                    #   TargetOriginId: S3Origin
+                    #   ViewerProtocolPolicy: redirect-to-https
+                    #   # TODO: use production cache policies (temporarily using caching disabled)
+                    #   CachePolicyId: 4135ea2d-6df8-44a3-9df3-4b5a84be39ad
+                    #   # see more here: https://docs.aws.amazon.com/AWSCloudFormation/latest/TemplateReference/aws-properties-cloudfront-distribution-functionassociation.html
+                    #   FunctionAssociations:
+                    #       - EventType: viewer-request
+                    #         FunctionARN: !GetAtt AppendIndexHTMLPathFunction.FunctionARN
+
+                    - PathPattern: /admin*
+                      TargetOriginId: S3Origin
+                      ViewerProtocolPolicy: redirect-to-https
+                      # TODO: use production cache policies (temporarily using caching disabled)
+                      CachePolicyId: 4135ea2d-6df8-44a3-9df3-4b5a84be39ad
+                      # see more here: https://docs.aws.amazon.com/AWSCloudFormation/latest/TemplateReference/aws-properties-cloudfront-distribution-functionassociation.html
+                      FunctionAssociations:
+                          - EventType: viewer-request
+                            FunctionARN: !GetAtt AppendIndexHTMLPathFunction.FunctionARN
+
+                    # api endpoints
+                    - PathPattern: /api/*
+                      TargetOriginId: APIGatewayOrigin
+                      ViewerProtocolPolicy: redirect-to-https
+                      # TODO: use production cache policies (temporarily using caching disabled)
+                      CachePolicyId: 4135ea2d-6df8-44a3-9df3-4b5a84be39ad
+                      # see more about managed origin request policies: https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/using-managed-origin-request-policies.html
+                      # TODO: migrate from development cors-customorigin policy
+                      OriginRequestPolicyId: 59781a5b-3903-41f3-afcb-af62929ccde1
+                      # allow all http methods
+                      AllowedMethods:
+                          - HEAD
+                          - DELETE
+                          - POST
+                          - GET
+                          - OPTIONS
+                          - PUT
+                          - PATCH
+                      # todo: explore caching methods using cachedmethods
+
+                PriceClass: PriceClass_100
+
+Outputs:
+    APIGatewayEndpoint:
+        Description: API Gateway endpoint URL for production stage
+        Value: !Sub https://${BlogApiGateway}.execute-api.${AWS::Region}.${AWS::URLSuffix}/
+    CloudFrontDomain:
+        Description: CloudFront default domain name
+        Value: !Sub https://${CloudFrontDistribution.DomainName}
+    BlogS3BucketName:
+        Description: S3 Bucket for static assets
+        Value: !Ref BlogBucket

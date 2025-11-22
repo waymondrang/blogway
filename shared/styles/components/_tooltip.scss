@@ -1,0 +1,45 @@
+#hoverTooltip {
+    position: fixed;
+
+    opacity: 0;
+    visibility: hidden;
+
+    border: 1px solid var(--border-color-0);
+    background-color: var(--background-color-1);
+
+    z-index: 9999;
+    pointer-events: none;
+
+    .content {
+        padding: 0.4rem 0.6rem;
+        white-space: nowrap;
+
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        gap: 0.5rem;
+
+        font-size: 0.9rem;
+
+        .symbol {
+            font-size: 0.9rem;
+        }
+
+        .raw {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        &.monospace {
+            color: var(--foreground-color-4);
+            font-family: var(--monospace-font-family);
+            font-size: 0.8rem;
+        }
+    }
+
+    &.visible {
+        opacity: 1;
+        visibility: visible;
+    }
+}

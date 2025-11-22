@@ -1,0 +1,29 @@
+{
+    "name": "blogway-serverless",
+    "version": "1.0.0",
+    "description": "",
+    "license": "ISC",
+    "author": "",
+    "type": "module",
+    "main": "index.js",
+    "scripts": {
+        "dev": "concurrently --names 'nodemon','webpack','sass' --prefix-colors 'auto' 'nodemon server.js' 'webpack --watch' 'sass --watch src/scss/index.scss static/css/styles.bundle.css'",
+        "build": "webpack --mode production && sass src/scss/index.scss static/css/styles.bundle.css",
+        "format:check": "prettier --check .",
+        "format:write": "prettier --write .",
+        "check": "npm run format:check"
+    },
+    "devDependencies": {
+        "concurrently": "^9.2.1",
+        "ejs": "^3.1.10",
+        "express": "^5.1.0",
+        "nodemon": "^3.1.10",
+        "prettier": "^3.6.2",
+        "sass": "^1.94.0",
+        "ts-loader": "^9.5.4",
+        "ts-node": "^10.9.2",
+        "typescript": "^5.9.3",
+        "webpack": "^5.102.1",
+        "webpack-cli": "^6.0.1"
+    }
+}

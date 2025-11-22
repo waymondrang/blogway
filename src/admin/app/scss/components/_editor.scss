@@ -1,0 +1,84 @@
+.menuBar,
+.actionBar {
+    background-color: var(--background-color-1);
+    border: 1px dotted var(--border-color-0);
+
+    padding: 1rem;
+
+    .buttonGroup {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+
+    & > *:not(:last-child) {
+        margin-bottom: 0.75rem;
+    }
+}
+
+.actionBar {
+    $success-border-color: var(--success-color-9);
+    $error-border-color: var(--error-color-9);
+
+    .status {
+        .actions {
+            display: flex;
+            justify-content: end;
+
+            button,
+            .button {
+                border: none;
+            }
+        }
+
+        &.success {
+            color: var(--success-color-0);
+            background-color: var(--success-color-13);
+            border: 1px solid $success-border-color;
+
+            .actions {
+                border-bottom: 1px solid $success-border-color;
+            }
+
+            button,
+            .button {
+                color: var(--success-color-0);
+                background-color: var(--success-color-13);
+                border-left: 1px solid $success-border-color;
+
+                &:hover {
+                    background-color: var(--success-color-11);
+                }
+            }
+        }
+
+        &.error {
+            color: var(--error-color-0);
+            background-color: var(--error-color-13);
+            border: 1px solid $error-border-color;
+
+            .actions {
+                border-bottom: 1px solid $error-border-color;
+            }
+
+            button,
+            .button {
+                color: var(--error-color-0);
+                background-color: var(--error-color-13);
+                border-left: 1px solid $error-border-color;
+
+                &:hover {
+                    background-color: var(--error-color-11);
+                }
+            }
+        }
+
+        .message {
+            padding: 1rem;
+        }
+    }
+}
+
+.menuBar {
+    margin-bottom: 2rem;
+}

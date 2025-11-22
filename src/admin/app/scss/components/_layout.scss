@@ -1,0 +1,59 @@
+// sorta misc
+
+header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    margin-bottom: 2rem;
+
+    .actions {
+        display: flex;
+        flex-direction: row;
+        gap: 1rem;
+    }
+}
+
+// amplify style overrides
+
+[data-amplify-authenticator] {
+    --amplify-components-authenticator-router-box-shadow: none;
+    --amplify-components-authenticator-router-border-width: 1px;
+    --amplify-components-authenticator-router-border-color: var(
+        --border-color-0
+    );
+
+    --amplify-components-authenticator-router-background-color: var(
+        --background-color-1
+    );
+
+    --amplify-components-authenticator-form-padding: 2rem;
+    --amplify-components-button-primary-background-color: var(
+        --background-color-4
+    );
+
+    --amplify-components-authenticator-container-width-max: 100%;
+}
+
+.amplify-button {
+    --amplify-internal-button-color: var(--foreground-color-8);
+}
+
+.amplify-button:hover {
+    --amplify-internal-button-color: var(--foreground-color-6);
+}
+
+.amplify-input {
+    background-color: var(--background-color-0);
+}
+
+.amplify-button--primary {
+    --amplify-internal-button-color: var(--foreground-color-6);
+    --amplify-internal-button-border-color: var(--border-color-0);
+
+    transition: none;
+}
+
+.amplify-button--primary:hover {
+    --amplify-components-button-primary-hover-color: var(--foreground-color-2);
+}

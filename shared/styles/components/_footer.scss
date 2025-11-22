@@ -1,0 +1,43 @@
+footer {
+    color: var(--foreground-color-4);
+
+    margin: 2rem 0;
+
+    .content {
+        display: flex;
+        flex-direction: row;
+        flex-wrap: wrap;
+
+        padding: 1rem;
+        margin-bottom: 2rem;
+
+        justify-content: space-between;
+        align-items: center;
+        gap: 1rem;
+
+        background-color: var(--background-color-1);
+
+        .stacked {
+            span {
+                display: block;
+
+                &:not(:last-child) {
+                    margin-bottom: 0.25rem;
+                }
+            }
+
+            .copyright {
+                color: var(--foreground-color-6);
+            }
+        }
+    }
+
+    .thumbnail {
+        width: 100%;
+
+        img {
+            display: block;
+            width: 100%;
+        }
+    }
+}

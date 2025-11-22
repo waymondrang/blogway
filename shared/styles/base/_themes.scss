@@ -1,0 +1,93 @@
+@use "functions" as *;
+
+// 2nd floor basement colors: #262401, #403C08, #8C8A65, #BFBD99, #F2F0D0
+
+$background-color-start: #f3f3ec;
+$background-color-end: #bfbd99;
+
+$foreground-a-color-start: #333333;
+$foreground-a-color-end: #000000;
+
+$foreground-b-color-start: #262401;
+$foreground-b-color-end: #bfbd99;
+
+$border-color-start: #bfbd99;
+$border-color-end: #262401;
+
+$error-color-start: #b71c1c;
+$error-color-end: #ffebee;
+
+$success-color-start: #33691e;
+$success-color-end: #f1f8e9;
+
+:root {
+    --sans-serif-font-family: "Inter", Arial, Helvetica, sans-serif;
+    --monospace-font-family: "Google Sans Code", monospace;
+
+    //////////////////////
+    // BACKGROUND COLOR //
+    //////////////////////
+
+    @include generate-color-properties(
+        "background-color",
+        $background-color-start,
+        $background-color-end,
+        11
+    );
+
+    //////////////////////
+    // FOREGROUND COLOR //
+    //////////////////////
+
+    // foreground-a
+    @include generate-color-properties(
+        "foreground-color",
+        $foreground-a-color-start,
+        $foreground-a-color-end,
+        4
+    );
+
+    // foreground-b
+    @include generate-color-properties(
+        "foreground-color",
+        $foreground-b-color-start,
+        $foreground-b-color-end,
+        10,
+        4
+    );
+
+    //////////////////
+    // BORDER COLOR //
+    //////////////////
+
+    @include generate-color-properties(
+        "border-color",
+        $border-color-start,
+        $border-color-end,
+        10
+    );
+
+    /////////////////
+    // ERROR COLOR //
+    /////////////////
+
+    @include generate-color-properties(
+        "error-color",
+        $error-color-start,
+        $error-color-end,
+        15
+    );
+
+    ///////////////////
+    // SUCCESS COLOR //
+    ///////////////////
+
+    @include generate-color-properties(
+        "success-color",
+        $success-color-start,
+        $success-color-end,
+        15
+    );
+}
+
+// todo: implement html.dark

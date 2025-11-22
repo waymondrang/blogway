@@ -1,0 +1,7 @@
+{
+    "name": "blogway",
+    "workspaces": [
+        "src/*",
+        "shared/*"
+    ]
+}

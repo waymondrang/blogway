@@ -1,0 +1,18 @@
+// sorta misc
+
+#logo {
+    margin-bottom: 1rem;
+}
+
+#everything {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+
+    width: 100%;
+    max-width: 500px;
+
+    padding: 2rem 1rem;
+
+    margin: 0 auto;
+}

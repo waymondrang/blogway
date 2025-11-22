@@ -1,0 +1,31 @@
+{
+    "compilerOptions": {
+        "target": "es2020",
+        "module": "commonjs",
+        "moduleResolution": "node",
+        "esModuleInterop": true,
+        "lib": ["DOM"],
+        "jsx": "react-jsx",
+        "allowJs": true,
+        "skipLibCheck": true,
+        "strict": false,
+        "noEmit": false,
+        "incremental": true,
+        "resolveJsonModule": true,
+        "isolatedModules": true,
+        "plugins": [
+            {
+                "name": "next"
+            }
+        ]
+    },
+    "include": [
+        "next-env.d.ts",
+        ".next/types/**/*.ts",
+        ".next/dev/types/**/*.ts",
+        "**/*.mts",
+        "**/*.ts",
+        "**/*.tsx"
+    ],
+    "exclude": ["node_modules"]
+}
