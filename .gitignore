@@ -217,7 +217,8 @@ out/
 # build files
 tsconfig.tsbuildinfo
 
-.env.*
+.env
+.env.production
 
 # public will be hosted from blog.waymondrang.com
 public/
