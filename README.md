@@ -35,16 +35,6 @@ This project is organized as an npm monorepo using workspaces, allowing for shar
 
 **`shared/styles`** - The `@blogway/styles` package containing shared SCSS code used in both `src/admin` and `src/serverless`
 
-## Architecture diagrams
-
-![Home page architecture diagram](docs/img/architecture%20diagrams/home%20page.png)
-
-![Admin page architecture diagram](docs/img/architecture%20diagrams/admin%20page.png)
-
-![Sanity API architecture diagram](docs/img/architecture%20diagrams/sanity%20api.png)
-
-![Upload API architecture diagram](docs/img/architecture%20diagrams/upload%20api.png)
-
 ## Local development
 
 For the **admin page**:
@@ -138,6 +128,16 @@ cd src/serverless
 ```
 
 This will build the project, deploy the CloudFormation stack via SAM, and upload static assets to S3.
+
+## Architecture diagrams
+
+![Home page architecture diagram](docs/img/architecture%20diagrams/home%20page.png)
+
+![Admin page architecture diagram](docs/img/architecture%20diagrams/admin%20page.png)
+
+![Sanity API architecture diagram](docs/img/architecture%20diagrams/sanity%20api.png)
+
+![Upload API architecture diagram](docs/img/architecture%20diagrams/upload%20api.png)
 
 ## Screenshots
 
