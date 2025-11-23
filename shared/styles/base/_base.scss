@@ -39,6 +39,9 @@ code {
 pre code {
     display: block;
     overflow-x: auto;
+    text-wrap: nowrap;
+    line-height: 1.25;
+
     padding: 1rem;
 
     color: var(--foreground-color-3);
