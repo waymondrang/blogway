@@ -60,6 +60,7 @@ npm run dev
 ```
 
 This starts:
+
 - **Express server** at `http://localhost:8080` that mimics the Lambda handler
 - **Webpack** in watch mode for TypeScript compilation
 - **SASS** in watch mode for stylesheet compilation
