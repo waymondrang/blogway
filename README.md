@@ -37,7 +37,9 @@ This project is organized as an npm monorepo using workspaces, allowing for shar
 
 ## Local development
 
-For the **admin page**:
+### Admin Page
+
+To run the Next.js admin page:
 
 ```sh
 cd src/admin
@@ -45,12 +47,33 @@ npm install
 npm run dev
 ```
 
-For **API Gateway and Lambda functions**:
+The admin page will be available at `http://localhost:3000`.
+
+### Serverless Lambda Functions
+
+To run the Lambda functions locally with live-reloading:
+
+```sh
+cd src/serverless
+npm install
+npm run dev
+```
+
+This starts:
+- **Express server** at `http://localhost:8080` that mimics the Lambda handler
+- **Webpack** in watch mode for TypeScript compilation
+- **SASS** in watch mode for stylesheet compilation
+- **Nodemon** watching for changes to Lambda functions, EJS templates, and mock data
+
+The development server uses mock blog data from `mock-data.js` instead of connecting to DynamoDB, allowing you to iterate quickly on the site design without deploying to AWS.
+
+**Alternative: Using SAM Local**
+
+If you prefer to use AWS SAM's local API Gateway (closer to production):
 
 ```sh
 cd src/serverless
 sam build
-# Start local API Gateway
 sam local start-api
 ```
 

@@ -28,6 +28,9 @@
             }
         </style>
 
+        <!-- cloudflare web analytics -->
+        <script defer src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "8016dd6cdf1b446a81e0270e57433248"}'></script>
+
         <!-- start highlight.js -->
         <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/highlight.min.js"></script>
 
@@ -77,12 +80,42 @@
                                                 ink_pen
                                             </span>
                                             <span>
-                                                Guest written by <span class="underline"><%= blog.guestWriter %></span>
+                                                Guest written by <span class="guestWriter"><%= blog.guestWriter %></span>
+                                            </span>
+                                        </div>
+                                    </div>
+                                <% } %>
+
+                                <% if (blog.coWriters) { %>
+                                    <div class="section">
+                                        <div class="textContainer">
+                                            <span class="material-symbols-outlined symbol">
+                                                ink_pen
+                                            </span>
+                                            <span>
+                                                Co-written with <%- blog.coWriters.map((writer, index, arr) => {
+                                                    const writerSpan = `<span class="coWriter">${writer}</span>`;
+
+                                                    if (arr.length === 1) {
+                                                        return writerSpan;
+                                                    }
+
+                                                    if (index === arr.length - 1) {
+                                                        return `and ${writerSpan}`;
+                                                    }
+
+                                                    if (index === arr.length - 2) {
+                                                        return `${writerSpan} `;
+                                                    }
+
+                                                    return `${writerSpan}, `;
+                                                }).join('') %>
                                             </span>
                                         </div>
                                     </div>
                                 <% } %>
                             </div>
+
                             <div class="content">
                                 <%- blog.content %>
                             </div>

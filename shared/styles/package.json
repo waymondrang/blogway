@@ -1,4 +1,7 @@
 {
     "name": "@blogway/styles",
-    "main": "index.scss"
+    "main": "index.scss",
+    "exports": {
+        "sass": "./index.scss"
+    }
 }

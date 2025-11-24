@@ -44,6 +44,11 @@
                 flex: 1;
                 border-top: 1px solid #888;
             }
+
+            .guestWriter,
+            .coWriter {
+                font-weight: 600;
+            }
         }
 
         button {

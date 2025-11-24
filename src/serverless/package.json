@@ -7,8 +7,12 @@
     "type": "module",
     "main": "index.js",
     "scripts": {
-        "dev": "concurrently --names 'nodemon','webpack','sass' --prefix-colors 'auto' 'nodemon server.js' 'webpack --watch' 'sass --watch src/scss/index.scss static/css/styles.bundle.css'",
+        "dev": "concurrently --names 'server,webpack,sass' --prefix-colors 'blue,yellow,magenta' 'nodemon server.js' 'webpack --watch' 'sass --pkg-importer=node --watch src/scss/index.scss static/css/styles.bundle.css'",
+        "dev:server": "nodemon server.js",
         "build": "webpack --mode production && sass src/scss/index.scss static/css/styles.bundle.css"
+    },
+    "dependencies": {
+        "@blogway/styles": "*"
     },
     "devDependencies": {
         "concurrently": "^9.2.1",
