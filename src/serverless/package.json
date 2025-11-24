@@ -9,7 +9,7 @@
     "scripts": {
         "dev": "concurrently --names 'server,webpack,sass' --prefix-colors 'blue,yellow,magenta' 'nodemon server.js' 'webpack --watch' 'sass --pkg-importer=node --watch src/scss/index.scss static/css/styles.bundle.css'",
         "dev:server": "nodemon server.js",
-        "build": "webpack --mode production && sass src/scss/index.scss static/css/styles.bundle.css"
+        "build": "webpack --mode production && sass --pkg-importer=node src/scss/index.scss static/css/styles.bundle.css"
     },
     "dependencies": {
         "@blogway/styles": "*"
