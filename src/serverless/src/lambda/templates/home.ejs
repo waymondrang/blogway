@@ -86,14 +86,14 @@
                                     </div>
                                 <% } %>
 
-                                <% if (blog.coWriters) { %>
+                                <% if (blog.coWriters && blog.coWriters.size > 0) { %>
                                     <div class="section">
                                         <div class="textContainer">
                                             <span class="material-symbols-outlined symbol">
                                                 ink_pen
                                             </span>
                                             <span>
-                                                Co-written with <%- blog.coWriters.map((writer, index, arr) => {
+                                                Co-written with <%- Array.from(blog.coWriters).map((writer, index, arr) => {
                                                     const writerSpan = `<span class="coWriter">${writer}</span>`;
 
                                                     if (arr.length === 1) {

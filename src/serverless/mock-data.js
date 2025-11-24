@@ -1,7 +1,7 @@
 export const mockBlogs = [
     {
         blogId: "hello-world",
-        coWriters: ["tewi", "izzy"],
+        coWriters: new Set(["tewi", "izzy"]),
         content: `
 <h1>Level 01: PILLAR OF AUTUMN</h1>
 <h2>Part 01 : Pillar of Autumn</h2>
