@@ -79,6 +79,49 @@
     }
 }
 
-.menuBar {
+.metadataBar {
+    background-color: var(--background-color-1);
+    border: 1px solid var(--border-color-0);
+    border-style: dotted;
+
+    .content {
+        padding: 1rem;
+
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+
+        .section {
+            .labelContainer {
+                padding: 0.25rem;
+                padding-top: 0;
+
+                font-family: var(--monospace-font-family);
+                font-size: 0.8rem;
+
+                .helper {
+                    color: var(--foreground-color-8);
+                }
+            }
+
+            input {
+                border: none;
+                outline: none;
+
+                padding: 0 1rem;
+
+                height: 2.5rem;
+                width: 100%;
+                box-sizing: border-box;
+
+                background-color: var(--background-color-2);
+                border: 1px solid var(--border-color-0);
+            }
+        }
+    }
+}
+
+.menuBar,
+.metadataBar {
     margin-bottom: 2rem;
 }

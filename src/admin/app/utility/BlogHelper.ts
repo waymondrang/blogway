@@ -1,12 +1,32 @@
 import { AuthHelper } from "./AuthHelper";
 
 export class BlogHelper {
-    // TODO: include other fields such as title (maybe optional?)
-    static async uploadBlog(content: string): Promise<Response | null> {
+    static async uploadBlog(
+        content: string,
+        guestWriter?: string,
+        coWriters?: string
+    ): Promise<Response | null> {
         try {
-            const requestBody = {
+            const requestBody: {
+                content: string;
+                guestWriter?: string;
+                coWriters?: string;
+            } = {
                 content: content,
             };
+
+            // sanitize optional inputs
+            if (guestWriter) {
+                requestBody.guestWriter = guestWriter.trim();
+            }
+
+            if (coWriters) {
+                requestBody.coWriters = coWriters
+                    .split(",")
+                    .map((writer) => writer.trim())
+                    .filter((writer) => writer !== "")
+                    .join(", ");
+            }
 
             const options: RequestInit = {
                 method: "POST",

@@ -14,7 +14,9 @@ const TABLE_NAME = process.env.TABLE_NAME;
 export const handler = async (event, context) => {
     try {
         const body = JSON.parse(event.body);
-        const { content, uploadDate } = body;
+
+        const content = body.content;
+        const customUploadDate = body.uploadDate; // override auto-generated date
 
         // validate required fields
         if (!content) {
@@ -30,16 +32,49 @@ export const handler = async (event, context) => {
             };
         }
 
+        // validate and sanitize optional fields
+        let guestWriter = null;
+        let coWriters = null;
+
+        if (body.guestWriter) {
+            const sanitizedGuestWriter = body.guestWriter.trim();
+
+            if (sanitizedGuestWriter.length > 0) {
+                guestWriter = sanitizedGuestWriter;
+            }
+        }
+
+        if (body.coWriters) {
+            const coWritersArray = body.coWriters
+                .split(",")
+                .map((writer) => writer.trim())
+                .filter((writer) => writer != "");
+
+            if (coWritersArray.length > 0) {
+                // convert to dynamodb string set
+                coWriters = new Set(coWritersArray);
+            }
+        }
+
         // generate a unique blog ID
         const generatedId = crypto.randomUUID();
-        const currentDate = uploadDate || new Date().toISOString();
+        const uploadDate = customUploadDate || new Date().toISOString();
 
-        // upload blog object
+        // create blog object with required fields
         const blogPost = {
             id: generatedId,
             content,
-            uploadDate: currentDate,
+            uploadDate: uploadDate,
         };
+
+        // add optional fields if they exist
+        if (guestWriter) {
+            blogPost.guestWriter = guestWriter;
+        }
+
+        if (coWriters) {
+            blogPost.coWriters = coWriters;
+        }
 
         // save blog into table
         const putCommand = new PutCommand({
