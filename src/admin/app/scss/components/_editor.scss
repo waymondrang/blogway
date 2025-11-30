@@ -3,7 +3,7 @@
     background-color: var(--background-color-1);
     border: 1px dotted var(--border-color-0);
 
-    padding: 1rem;
+    padding: 0.75rem;
 
     .buttonGroup {
         display: flex;
@@ -85,7 +85,7 @@
     border-style: dotted;
 
     .content {
-        padding: 1rem;
+        padding: 0.75rem;
 
         display: flex;
         flex-direction: column;
@@ -108,7 +108,7 @@
                 border: none;
                 outline: none;
 
-                padding: 0 1rem;
+                padding: 0 0.375rem;
 
                 height: 2.5rem;
                 width: 100%;
