@@ -10,11 +10,12 @@ const __dirname = path.dirname(__filename);
 const app = express();
 const PORT = process.env.PORT || 8080;
 
-app.use("/static", express.static(path.join(__dirname, "static")));
+app.use("/static", express.static(path.join(__dirname, "..", "static")));
 
 // template path (same as lambda function)
 const templatePath = path.join(
     __dirname,
+    "..",
     "src",
     "lambda",
     "templates",

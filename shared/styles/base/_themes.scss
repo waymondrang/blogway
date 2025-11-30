@@ -2,8 +2,8 @@
 
 // 2nd floor basement colors: #262401, #403C08, #8C8A65, #BFBD99, #F2F0D0
 
-$background-color-start: #f3f3ec;
-$background-color-end: #bfbd99;
+$background-color-start: hsl(60, 23%, 96%);
+$background-color-end: hsl(57, 23%, 80%);
 
 $foreground-a-color-start: #333333;
 $foreground-a-color-end: #000000;
@@ -32,7 +32,7 @@ $success-color-end: #f1f8e9;
         "background-color",
         $background-color-start,
         $background-color-end,
-        11
+        6
     );
 
     //////////////////////
